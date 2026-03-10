@@ -1,0 +1,60 @@
+[
+    {
+        "name": "01A92",
+        "sections": [
+            {
+                "diameter": 25.4,
+                "length": 24.3
+            },
+            {
+                "diameter": 26.0,
+                "length": 4.0
+            },
+            {
+                "diameter": 24.8,
+                "length": 71.0
+            },
+            {
+                "diameter": 26.0,
+                "length": 6.0
+            },
+            {
+                "diameter": 24.8,
+                "length": 4.0
+            },
+            {
+                "diameter": 26.0,
+                "length": 10.0
+            }
+        ]
+    },
+    {
+        "name": "02A92",
+        "sections": [
+            {
+                "diameter": 25.4,
+                "length": 18.9
+            },
+            {
+                "diameter": 26.0,
+                "length": 4.0
+            },
+            {
+                "diameter": 24.5,
+                "length": 85.6
+            },
+            {
+                "diameter": 26.0,
+                "length": 6.0
+            },
+            {
+                "diameter": 25.0,
+                "length": 3.0
+            },
+            {
+                "diameter": 26.0,
+                "length": 10.0
+            }
+        ]
+    }
+]

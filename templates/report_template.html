@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Relatório de Rigidez Torcional</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 32px; background: #f7f9fb; color: #222; }
+        h1 { color: #1a3a5c; border-bottom: 2px solid #1a3a5c; padding-bottom: 8px; }
+        h2 { color: #224f84; margin-top: 28px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 12px; }
+        th { background-color: #1a3a5c; color: #fff; padding: 9px 12px; text-align: center; }
+        td { border: 1px solid #c5d5e8; padding: 8px 12px; text-align: center; }
+        tr:nth-child(even) td { background-color: #eaf0f8; }
+        .total-box { display: inline-block; margin-top: 16px; padding: 14px 28px;
+                     background: #1a3a5c; color: #fff; border-radius: 6px;
+                     font-size: 1.3em; font-weight: bold; letter-spacing: 0.04em; }
+        .info-table td { text-align: left; border: none; padding: 4px 12px; }
+        .info-table td:first-child { font-weight: bold; width: 200px; }
+        .company-banner { width: 100%; max-width: 900px; display: block;
+                          margin: 0 auto 24px auto; border-radius: 6px; }
+        /* Operating limits analysis card */
+        .analysis-card { max-width: 900px; margin: 16px auto 0 auto; padding: 20px 28px;
+                         background: #fff; border: 1px solid #c5d5e8; border-radius: 8px;
+                         font-size: 0.93em; line-height: 1.6; }
+        .analysis-card h3 { color: #1a3a5c; margin: 0 0 10px 0; font-size: 1.05em; border-bottom: 1px solid #c5d5e8; padding-bottom: 6px; }
+        .analysis-card p.intro { color: #444; margin: 0 0 18px 0; }
+        .analysis-card .values-table { width: 100%; border-collapse: collapse; margin-bottom: 18px; }
+        .analysis-card .values-table th { background: #1a3a5c; color: #fff; padding: 7px 12px; text-align: left; font-weight: normal; }
+        .analysis-card .values-table td { border: 1px solid #dce8f5; padding: 6px 12px; }
+        .analysis-card .values-table tr:nth-child(even) td { background: #eaf0f8; }
+        .analysis-card .values-table td.num { text-align: right; font-weight: bold; font-family: monospace; min-width: 130px; }
+        .analysis-card h4 { color: #224f84; margin: 0 0 8px 0; font-size: 0.97em; }
+        .analysis-card ul { margin: 0 0 18px 0; padding-left: 22px; color: #333; }
+        .analysis-card ul li { margin-bottom: 5px; }
+        .legend-dot { display: inline-block; width: 12px; height: 12px; border-radius: 2px; margin-right: 6px; vertical-align: middle; }
+        .analysis-note { background: #f0f4fa; border-left: 4px solid #4a8ac4; padding: 12px 16px;
+                         border-radius: 4px; color: #444; font-style: italic; font-size: 0.90em; }
+        .chart-comment { background: #f0f4fa; border-left: 4px solid #224f84; padding: 12px 16px;
+                         border-radius: 4px; color: #333; font-size: 0.93em;
+                         max-width: 900px; margin: 4px auto 16px auto; line-height: 1.6; }
+        .conclusion-safe    { background: #e6f7ee; border-left: 5px solid #22aa44; padding: 12px 16px; border-radius: 4px; color: #1a6630; font-weight: bold; }
+        .conclusion-danger  { background: #fff0f0; border-left: 5px solid #cc0000; padding: 12px 16px; border-radius: 4px; color: #880000; font-weight: bold; }
+    </style>
+</head>
+<body>
+    {% if company_banner_b64 %}
+    <img class="company-banner"
+         src="data:image/png;base64,{{ company_banner_b64 }}"
+         alt="Company Banner" />
+    {% endif %}
+    <h1>{{ lbl_title }}</h1>
+
+    <h2>{{ lbl_info }}</h2>
+    <table class="info-table">
+        <tr><td>{{ lbl_project_name }}:</td><td>{{ project_name }}</td></tr>
+        <tr><td>{{ lbl_engineer }}:</td><td>{{ engineer }}</td></tr>
+        <tr><td>{{ lbl_date }}:</td><td>{{ generated_on }}</td></tr>
+    </table>
+
+    <h2>{{ lbl_joints_info }}</h2>
+    <table class="info-table">
+        <tr><td>{{ lbl_obj_joint }}:</td><td>{{ obj_joint_name }}</td></tr>
+        <tr><td>{{ lbl_ibj_joint }}:</td><td>{{ ibj_joint_name }}</td></tr>
+        <tr><td>{{ lbl_material_name }}:</td><td>{{ material_name }}</td></tr>
+        <tr><td>{{ lbl_material_shear }}:</td><td>{{ "%.2f" | format(shear_modulus) }}</td></tr>
+    </table>
+
+    <h2>{{ lbl_drawing }}</h2>
+    {{ shaft_svg | safe }}
+
+    <h2>{{ lbl_table }}</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>{{ lbl_seg_num }}</th>
+                <th>{{ lbl_diameter }}</th>
+                <th>{{ lbl_length }}</th>
+                <th>{{ lbl_shear_modulus }}</th>
+                <th>{{ lbl_seg_stiffness }}</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for seg in segments %}
+            <tr>
+                <td>{{ seg.index }}</td>
+                <td>{{ "%.2f" | format(seg.diameter) }}</td>
+                <td>{{ "%.2f" | format(seg.length) }}</td>
+                <td>{{ "%.2f" | format(seg.shear_modulus) }}</td>
+                <td>{{ "%.4f" | format(seg.stiffness) }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <h2>{{ lbl_total_title }}</h2>
+    <div class="total-box">{{ "%.4f" | format(total_stiffness) }} &nbsp; {{ lbl_total_unit }}</div>
+
+    {% if chart_svg %}
+    <h2>{{ lbl_chart_title }}</h2>
+    {{ chart_svg | safe }}
+    {% if chart_comment %}
+    <p class="chart-comment">{{ chart_comment }}</p>
+    {% endif %}
+    {% endif %}
+
+    {% if stress_strain_svg %}
+    <h2>{{ lbl_stress_strain_title }}</h2>
+    {{ stress_strain_svg | safe }}
+
+    {% if tau_max_mpa > 0 and mat_sy > 0 %}
+    <div class="analysis-card">
+
+        <h3>{{ lbl_analysis_title }}</h3>
+        <p class="intro">{{ lbl_analysis_intro }}</p>
+
+        <h4>{{ lbl_values_title }}</h4>
+        <table class="values-table">
+            <thead>
+                <tr><th style="width:70%">{{ lbl_values_title }}</th><th>Valor / Value</th></tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>{{ lbl_val_tau_max }}</td>
+                    <td class="num">{{ "%.2f" | format(tau_max_mpa) }} MPa</td>
+                </tr>
+                <tr>
+                    <td>{{ lbl_val_tau_yield }}</td>
+                    <td class="num">{{ "%.2f" | format(tau_yield_mpa) }} MPa</td>
+                </tr>
+                <tr>
+                    <td>{{ lbl_val_sf }}</td>
+                    <td class="num" style="color: {{ sf_colour }};">
+                        {{ "%.2f" | format(sf) }}
+                    </td>
+                </tr>
+                <tr>
+                    <td>{{ lbl_val_sy }}</td>
+                    <td class="num">{{ "%.0f" | format(mat_sy) }} MPa</td>
+                </tr>
+                <tr>
+                    <td>{{ lbl_val_su }}</td>
+                    <td class="num">{{ "%.0f" | format(mat_su) }} MPa</td>
+                </tr>
+                <tr>
+                    <td>{{ lbl_val_e }}</td>
+                    <td class="num">{{ "%.0f" | format(mat_e) }} MPa</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <h4>{{ lbl_zone_title }}</h4>
+        <ul>
+            <li>
+                <span class="legend-dot" style="background:#22bb44;opacity:0.55;"></span>
+                {{ lbl_zone_green }}
+            </li>
+            <li>
+                <span class="legend-dot" style="background:#ffcc00;opacity:0.65;"></span>
+                {{ lbl_zone_yellow }}
+            </li>
+            <li>
+                <span class="legend-dot" style="background:#22aa44;border:2px dashed #22aa44;"></span>
+                {{ lbl_zone_green_line }}
+            </li>
+            <li>
+                <span class="legend-dot" style="background:#cc8800;border:2px dashed #cc8800;"></span>
+                {{ lbl_zone_orange_line }}
+            </li>
+            <li>
+                <span class="legend-dot" style="background:#224f84;"></span>
+                {{ lbl_zone_blue_curve }}
+            </li>
+        </ul>
+
+        <div class="analysis-note">
+            {{ lbl_analysis_note }}
+        </div>
+
+    </div>
+    {% endif %}
+
+    {% endif %}
+
+</body>
+</html>

@@ -1,0 +1,142 @@
+[
+    {
+        "name": "SAE 1020 (Low Carbon Steel)",
+        "shear_modulus": 79300.0,
+        "elastic_modulus_mpa": 205000.0,
+        "yield_strength_mpa": 210.0,
+        "ultimate_strength_mpa": 380.0
+    },
+    {
+        "name": "SAE 1045 (Medium Carbon Steel)",
+        "shear_modulus": 80000.0,
+        "elastic_modulus_mpa": 207000.0,
+        "yield_strength_mpa": 380.0,
+        "ultimate_strength_mpa": 620.0
+    },
+    {
+        "name": "SAE 4130 (Cr-Mo Steel)",
+        "shear_modulus": 80000.0,
+        "elastic_modulus_mpa": 205000.0,
+        "yield_strength_mpa": 435.0,
+        "ultimate_strength_mpa": 670.0
+    },
+    {
+        "name": "SAE 4140 (Cr-Mo Steel, Q&T)",
+        "shear_modulus": 80000.0,
+        "elastic_modulus_mpa": 207000.0,
+        "yield_strength_mpa": 655.0,
+        "ultimate_strength_mpa": 1020.0
+    },
+    {
+        "name": "SAE 4340 (Ni-Cr-Mo Steel, Q&T)",
+        "shear_modulus": 80000.0,
+        "elastic_modulus_mpa": 207000.0,
+        "yield_strength_mpa": 862.0,
+        "ultimate_strength_mpa": 1090.0
+    },
+    {
+        "name": "SAE 8620 (Case Hardening Steel)",
+        "shear_modulus": 79300.0,
+        "elastic_modulus_mpa": 205000.0,
+        "yield_strength_mpa": 385.0,
+        "ultimate_strength_mpa": 530.0
+    },
+    {
+        "name": "AISI 304 (Stainless Steel)",
+        "shear_modulus": 73100.0,
+        "elastic_modulus_mpa": 193000.0,
+        "yield_strength_mpa": 215.0,
+        "ultimate_strength_mpa": 505.0
+    },
+    {
+        "name": "AISI 316 (Stainless Steel, Marine)",
+        "shear_modulus": 74000.0,
+        "elastic_modulus_mpa": 193000.0,
+        "yield_strength_mpa": 205.0,
+        "ultimate_strength_mpa": 515.0
+    },
+    {
+        "name": "AISI 52100 (Bearing Steel)",
+        "shear_modulus": 80000.0,
+        "elastic_modulus_mpa": 207000.0,
+        "yield_strength_mpa": 1500.0,
+        "ultimate_strength_mpa": 1900.0
+    },
+    {
+        "name": "17-4 PH (Precipitation Hardened SS)",
+        "shear_modulus": 77200.0,
+        "elastic_modulus_mpa": 197000.0,
+        "yield_strength_mpa": 1170.0,
+        "ultimate_strength_mpa": 1310.0
+    },
+    {
+        "name": "AA 6061-T6 (Aluminium Alloy)",
+        "shear_modulus": 26000.0,
+        "elastic_modulus_mpa": 68900.0,
+        "yield_strength_mpa": 276.0,
+        "ultimate_strength_mpa": 310.0
+    },
+    {
+        "name": "AA 7075-T6 (Aluminium Alloy, High Str.)",
+        "shear_modulus": 26900.0,
+        "elastic_modulus_mpa": 71700.0,
+        "yield_strength_mpa": 503.0,
+        "ultimate_strength_mpa": 572.0
+    },
+    {
+        "name": "AA 2024-T3 (Aluminium, Aircraft Grade)",
+        "shear_modulus": 28000.0,
+        "elastic_modulus_mpa": 73100.0,
+        "yield_strength_mpa": 345.0,
+        "ultimate_strength_mpa": 483.0
+    },
+    {
+        "name": "Ti-6Al-4V (Titanium Alloy, Grade 5)",
+        "shear_modulus": 44000.0,
+        "elastic_modulus_mpa": 114000.0,
+        "yield_strength_mpa": 880.0,
+        "ultimate_strength_mpa": 950.0
+    },
+    {
+        "name": "Inconel 718 (Ni Superalloy)",
+        "shear_modulus": 77000.0,
+        "elastic_modulus_mpa": 200000.0,
+        "yield_strength_mpa": 1034.0,
+        "ultimate_strength_mpa": 1241.0
+    },
+    {
+        "name": "Gray Cast Iron (GCI)",
+        "shear_modulus": 41000.0,
+        "elastic_modulus_mpa": 100000.0,
+        "yield_strength_mpa": 120.0,
+        "ultimate_strength_mpa": 250.0
+    },
+    {
+        "name": "Ductile Cast Iron (GGG-70)",
+        "shear_modulus": 70000.0,
+        "elastic_modulus_mpa": 169000.0,
+        "yield_strength_mpa": 420.0,
+        "ultimate_strength_mpa": 700.0
+    },
+    {
+        "name": "Copper C110 (Electrolytic Tough Pitch)",
+        "shear_modulus": 44000.0,
+        "elastic_modulus_mpa": 117000.0,
+        "yield_strength_mpa": 69.0,
+        "ultimate_strength_mpa": 220.0
+    },
+    {
+        "name": "Bronze SAE 660 (Bearing Bronze)",
+        "shear_modulus": 37000.0,
+        "elastic_modulus_mpa": 96500.0,
+        "yield_strength_mpa": 125.0,
+        "ultimate_strength_mpa": 240.0
+    },
+    {
+        "name": "Magnesium AZ31B (Mg Alloy)",
+        "shear_modulus": 17000.0,
+        "elastic_modulus_mpa": 45000.0,
+        "yield_strength_mpa": 220.0,
+        "ultimate_strength_mpa": 290.0
+    }
+]
