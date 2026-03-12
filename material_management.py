@@ -5,12 +5,14 @@ import os
 
 COLUMNS = ("material_name", "shear_modulus_mpa",
            "elastic_modulus_mpa", "yield_strength_mpa", "ultimate_strength_mpa")
-COLUMN_HEADERS = {
-    "material_name":        "Nome do Material",
-    "shear_modulus_mpa":    "Módulo Cisalh. G (MPa)",
-    "elastic_modulus_mpa":  "Módulo Elástico E (MPa)",
-    "yield_strength_mpa":   "Tensão Escoamento (MPa)",
-    "ultimate_strength_mpa":"Tensão Ruptura (MPa)",
+
+# Fallback English headers used only when no translator is supplied
+COLUMN_HEADERS_FALLBACK = {
+    "material_name":        "Material Name",
+    "shear_modulus_mpa":    "Shear Modulus G (MPa)",
+    "elastic_modulus_mpa":  "Elastic Modulus E (MPa)",
+    "yield_strength_mpa":   "Yield Strength (MPa)",
+    "ultimate_strength_mpa":"Ultimate Strength (MPa)",
 }
 COLUMN_WIDTHS = {
     "material_name":        220,
@@ -19,7 +21,6 @@ COLUMN_WIDTHS = {
     "yield_strength_mpa":   170,
     "ultimate_strength_mpa":170,
 }
-DEFAULT_NEW_ROW = ("Novo Material", "0.00", "0.00", "0.00", "0.00")
 
 
 class MaterialManagementWindow(tk.Toplevel):
@@ -34,17 +35,20 @@ class MaterialManagementWindow(tk.Toplevel):
         self.load_materials()
         self.update_ui()
 
-        # Auto-fit width: sum of all column widths + scrollbar + padding
-        total_col_w = sum(COLUMN_WIDTHS.values())
-        win_w = total_col_w + 20 + 20   # +scrollbar (~20) + left/right padding
-        win_h = 400
-        self.geometry(f"{win_w}x{win_h}")
-        self.minsize(win_w, 200)
+        # Auto-fit to content; keep user able to resize freely.
+        self.update_idletasks()
+        w = max(self.winfo_reqwidth(), 600)
+        h = max(self.winfo_reqheight(), 350)
+        self.geometry(f"{w}x{h}")
+        self.minsize(500, 250)
 
     def _t(self, key):
         if self.translator:
             return self.translator.translate(key)
-        return COLUMN_HEADERS.get(key, key)
+        return COLUMN_HEADERS_FALLBACK.get(key, key)
+
+    def _default_new_row(self):
+        return (self._t("new_material_default_name"), "0.00", "0.00", "0.00", "0.00")
 
     def update_ui(self):
         """Refresh all translatable text."""
@@ -90,15 +94,17 @@ class MaterialManagementWindow(tk.Toplevel):
                                   selectmode="browse")
 
         for col in COLUMNS:
-            self.tree.heading(col, text=COLUMN_HEADERS[col], anchor="center")
+            self.tree.heading(col, text=self._t(col), anchor="center")
             self.tree.column(col, width=COLUMN_WIDTHS[col], anchor="center",
                              minwidth=80, stretch=True)
 
         vsb = ttk.Scrollbar(tree_frame, orient="vertical", command=self.tree.yview)
-        self.tree.configure(yscrollcommand=vsb.set)
+        hsb = ttk.Scrollbar(tree_frame, orient="horizontal", command=self.tree.xview)
+        self.tree.configure(yscrollcommand=vsb.set, xscrollcommand=hsb.set)
 
         self.tree.grid(row=0, column=0, sticky="nsew")
         vsb.grid(row=0, column=1, sticky="ns")
+        hsb.grid(row=1, column=0, sticky="ew")
         tree_frame.rowconfigure(0, weight=1)
         tree_frame.columnconfigure(0, weight=1)
 
@@ -151,7 +157,7 @@ class MaterialManagementWindow(tk.Toplevel):
     # CRUD
     # ------------------------------------------------------------------
     def new_material(self):
-        iid = self.tree.insert("", "end", values=DEFAULT_NEW_ROW)
+        iid = self.tree.insert("", "end", values=self._default_new_row())
         self.tree.selection_set(iid)
         self.tree.see(iid)
 

@@ -1,0 +1,108 @@
+{
+  "project_name": "teste 01",
+  "engineer": "Ale",
+  "shaft_diameter": "26",
+  "shaft_length": "400",
+  "obj_joint_name": "02A92",
+  "ibj_joint_name": "02A92",
+  "material_name": "SAE 1020 (Low Carbon Steel)",
+  "obj_joint": {
+    "name": "02A92",
+    "offset": 10.0,
+    "sections": [
+      {
+        "diameter": 25.4,
+        "length": 18.9
+      },
+      {
+        "diameter": 26.0,
+        "length": 4.0
+      },
+      {
+        "diameter": 24.5,
+        "length": 85.6
+      },
+      {
+        "diameter": 26.0,
+        "length": 6.0
+      },
+      {
+        "diameter": 25.0,
+        "length": 3.0
+      },
+      {
+        "diameter": 26.0,
+        "length": 10.0
+      },
+      {
+        "diameter": 0.0,
+        "length": 0.0
+      },
+      {
+        "diameter": 0.0,
+        "length": 0.0
+      },
+      {
+        "diameter": 0.0,
+        "length": 0.0
+      },
+      {
+        "diameter": 0.0,
+        "length": 0.0
+      }
+    ]
+  },
+  "ibj_joint": {
+    "name": "02A92",
+    "offset": 10.0,
+    "sections": [
+      {
+        "diameter": 25.4,
+        "length": 18.9
+      },
+      {
+        "diameter": 26.0,
+        "length": 4.0
+      },
+      {
+        "diameter": 24.5,
+        "length": 85.6
+      },
+      {
+        "diameter": 26.0,
+        "length": 6.0
+      },
+      {
+        "diameter": 25.0,
+        "length": 3.0
+      },
+      {
+        "diameter": 26.0,
+        "length": 10.0
+      },
+      {
+        "diameter": 0.0,
+        "length": 0.0
+      },
+      {
+        "diameter": 0.0,
+        "length": 0.0
+      },
+      {
+        "diameter": 0.0,
+        "length": 0.0
+      },
+      {
+        "diameter": 0.0,
+        "length": 0.0
+      }
+    ]
+  },
+  "material": {
+    "name": "SAE 1020 (Low Carbon Steel)",
+    "shear_modulus": 79300.0,
+    "elastic_modulus_mpa": 205000.0,
+    "yield_strength_mpa": 210.0,
+    "ultimate_strength_mpa": 380.0
+  }
+}

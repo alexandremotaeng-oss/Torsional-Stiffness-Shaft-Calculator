@@ -1,186 +1,639 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Relatório de Rigidez Torcional</title>
-    <style>
-        body { font-family: Arial, sans-serif; margin: 32px; background: #f7f9fb; color: #222; }
-        h1 { color: #1a3a5c; border-bottom: 2px solid #1a3a5c; padding-bottom: 8px; }
-        h2 { color: #224f84; margin-top: 28px; }
-        table { width: 100%; border-collapse: collapse; margin-top: 12px; }
-        th { background-color: #1a3a5c; color: #fff; padding: 9px 12px; text-align: center; }
-        td { border: 1px solid #c5d5e8; padding: 8px 12px; text-align: center; }
-        tr:nth-child(even) td { background-color: #eaf0f8; }
-        .total-box { display: inline-block; margin-top: 16px; padding: 14px 28px;
-                     background: #1a3a5c; color: #fff; border-radius: 6px;
-                     font-size: 1.3em; font-weight: bold; letter-spacing: 0.04em; }
-        .info-table td { text-align: left; border: none; padding: 4px 12px; }
-        .info-table td:first-child { font-weight: bold; width: 200px; }
-        .company-banner { width: 100%; max-width: 900px; display: block;
-                          margin: 0 auto 24px auto; border-radius: 6px; }
-        /* Operating limits analysis card */
-        .analysis-card { max-width: 900px; margin: 16px auto 0 auto; padding: 20px 28px;
-                         background: #fff; border: 1px solid #c5d5e8; border-radius: 8px;
-                         font-size: 0.93em; line-height: 1.6; }
-        .analysis-card h3 { color: #1a3a5c; margin: 0 0 10px 0; font-size: 1.05em; border-bottom: 1px solid #c5d5e8; padding-bottom: 6px; }
-        .analysis-card p.intro { color: #444; margin: 0 0 18px 0; }
-        .analysis-card .values-table { width: 100%; border-collapse: collapse; margin-bottom: 18px; }
-        .analysis-card .values-table th { background: #1a3a5c; color: #fff; padding: 7px 12px; text-align: left; font-weight: normal; }
-        .analysis-card .values-table td { border: 1px solid #dce8f5; padding: 6px 12px; }
-        .analysis-card .values-table tr:nth-child(even) td { background: #eaf0f8; }
-        .analysis-card .values-table td.num { text-align: right; font-weight: bold; font-family: monospace; min-width: 130px; }
-        .analysis-card h4 { color: #224f84; margin: 0 0 8px 0; font-size: 0.97em; }
-        .analysis-card ul { margin: 0 0 18px 0; padding-left: 22px; color: #333; }
-        .analysis-card ul li { margin-bottom: 5px; }
-        .legend-dot { display: inline-block; width: 12px; height: 12px; border-radius: 2px; margin-right: 6px; vertical-align: middle; }
-        .analysis-note { background: #f0f4fa; border-left: 4px solid #4a8ac4; padding: 12px 16px;
-                         border-radius: 4px; color: #444; font-style: italic; font-size: 0.90em; }
-        .chart-comment { background: #f0f4fa; border-left: 4px solid #224f84; padding: 12px 16px;
-                         border-radius: 4px; color: #333; font-size: 0.93em;
-                         max-width: 900px; margin: 4px auto 16px auto; line-height: 1.6; }
-        .conclusion-safe    { background: #e6f7ee; border-left: 5px solid #22aa44; padding: 12px 16px; border-radius: 4px; color: #1a6630; font-weight: bold; }
-        .conclusion-danger  { background: #fff0f0; border-left: 5px solid #cc0000; padding: 12px 16px; border-radius: 4px; color: #880000; font-weight: bold; }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{{ lbl_title }}</title>
+  <style>
+    /* ── Reset & Base ─────────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --navy:      #0d2540;
+      --blue:      #1a4b8c;
+      --blue-mid:  #2563b0;
+      --blue-light:#ddeaf8;
+      --accent:    #e8a020;
+      --text:      #1c2b3a;
+      --text-soft: #4a5a6a;
+      --border:    #c8d8ea;
+      --row-even:  #f0f5fb;
+      --white:     #ffffff;
+      --page-bg:   #f2f5f9;
+      --card-bg:   #ffffff;
+      --radius:    8px;
+      --shadow:    0 2px 12px rgba(13,37,64,.10);
+      --shadow-lg: 0 6px 28px rgba(13,37,64,.14);
+    }
+
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+    body {
+      font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
+      background: var(--page-bg);
+      color: var(--text);
+      font-size: 13.5px;
+      line-height: 1.65;
+      padding: 0 0 60px 0;
+    }
+
+    /* ── Page wrapper ─────────────────────────────────────────────── */
+    .page { max-width: 1020px; margin: 0 auto; padding: 0 24px; }
+
+    /* ── Top header bar ───────────────────────────────────────────── */
+    .report-header {
+      background: linear-gradient(135deg, var(--navy) 0%, var(--blue) 100%);
+      color: var(--white);
+      padding: 0;
+      margin-bottom: 36px;
+    }
+    .report-header-inner {
+      max-width: 1020px;
+      margin: 0 auto;
+      padding: 32px 32px 28px 32px;
+      display: flex;
+      align-items: center;
+      gap: 28px;
+    }
+    .report-header-inner .banner-wrap { flex-shrink: 0; }
+    .report-header-inner .banner-wrap img {
+  height: 64px;
+  max-width: 220px;
+  object-fit: contain;
+  border-radius: 0;
+  background: none;
+  padding: 0;
+    }
+    .report-header-text { flex: 1; }
+    .report-header-text h1 {
+      font-size: 1.65em;
+      font-weight: 700;
+      letter-spacing: .02em;
+      line-height: 1.2;
+      color: var(--white);
+    }
+    .report-header-text .subtitle {
+      margin-top: 6px;
+      font-size: 0.88em;
+      color: rgba(255,255,255,.70);
+      letter-spacing: .03em;
+    }
+    .header-divider {
+      height: 4px;
+      background: linear-gradient(90deg, var(--accent) 0%, rgba(232,160,32,0) 100%);
+    }
+
+    /* ── Section title ────────────────────────────────────────────── */
+    .section-title {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin: 36px 0 14px 0;
+    }
+    .section-title .pill {
+      display: inline-block;
+      width: 6px;
+      height: 28px;
+      background: linear-gradient(180deg, var(--accent) 0%, var(--blue-mid) 100%);
+      border-radius: 3px;
+      flex-shrink: 0;
+    }
+    .section-title h2 {
+      font-size: 1.05em;
+      font-weight: 700;
+      color: var(--navy);
+      text-transform: uppercase;
+      letter-spacing: .08em;
+    }
+
+    /* ── Card ─────────────────────────────────────────────────────── */
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      margin-bottom: 8px;
+    }
+    .card-body { padding: 20px 24px; }
+
+    /* ── Info grid (project + joints) ─────────────────────────────── */
+    .info-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+    @media (max-width: 680px) { .info-grid { grid-template-columns: 1fr; } }
+
+    .info-block { display: flex; flex-direction: column; gap: 2px; }
+    .info-block .info-row {
+      display: flex;
+      align-items: baseline;
+      padding: 7px 0;
+      border-bottom: 1px solid #edf2f8;
+    }
+    .info-block .info-row:last-child { border-bottom: none; }
+    .info-block .info-label {
+      font-weight: 600;
+      color: var(--text-soft);
+      font-size: .82em;
+      text-transform: uppercase;
+      letter-spacing: .06em;
+      width: 180px;
+      flex-shrink: 0;
+    }
+    .info-block .info-value {
+      color: var(--text);
+      font-weight: 500;
+    }
+
+    /* ── Data table ───────────────────────────────────────────────── */
+    .data-table-wrap { overflow-x: auto; }
+    table.data-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: .92em;
+    }
+    table.data-table thead tr {
+      background: var(--navy);
+    }
+    table.data-table thead th {
+      color: var(--white);
+      padding: 11px 14px;
+      text-align: center;
+      font-weight: 600;
+      font-size: .82em;
+      text-transform: uppercase;
+      letter-spacing: .06em;
+      white-space: nowrap;
+    }
+    table.data-table thead th:first-child { border-radius: 0; }
+    table.data-table tbody tr { transition: background .15s; }
+    table.data-table tbody tr:nth-child(even) td { background: var(--row-even); }
+    table.data-table tbody tr:hover td { background: #dceaf8; }
+    table.data-table tbody td {
+      padding: 9px 14px;
+      text-align: center;
+      border-bottom: 1px solid var(--border);
+      color: var(--text);
+    }
+    table.data-table tbody td:first-child {
+      font-weight: 700;
+      color: var(--blue);
+    }
+    .seg-excluded td {
+      color: #9aacbd !important;
+      font-style: italic;
+      background: #f6f8fb !important;
+    }
+    .seg-excluded td:first-child { color: #b0bec9 !important; font-weight: 400; }
+
+    /* ── Total stiffness KPI ──────────────────────────────────────── */
+    .kpi-wrap {
+      display: flex;
+      align-items: stretch;
+      gap: 0;
+      border-radius: var(--radius);
+      overflow: hidden;
+      box-shadow: var(--shadow-lg);
+      max-width: 480px;
+      margin: 8px 0 0 0;
+    }
+    .kpi-accent-bar {
+      width: 8px;
+      background: linear-gradient(180deg, var(--accent) 0%, #c07010 100%);
+      flex-shrink: 0;
+    }
+    .kpi-body {
+      flex: 1;
+      background: var(--navy);
+      padding: 20px 28px;
+    }
+    .kpi-label {
+      font-size: .75em;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: .10em;
+      color: rgba(255,255,255,.55);
+      margin-bottom: 4px;
+    }
+    .kpi-value {
+      font-size: 2em;
+      font-weight: 700;
+      color: var(--white);
+      line-height: 1.1;
+      letter-spacing: .01em;
+    }
+    .kpi-unit {
+      font-size: .80em;
+      color: var(--accent);
+      font-weight: 600;
+      margin-top: 4px;
+      letter-spacing: .04em;
+    }
+
+    /* ── SVG containers ───────────────────────────────────────────── */
+    .svg-wrap {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 16px 20px;
+      overflow: hidden;
+      text-align: center;
+    }
+    .svg-wrap svg { display: block; width: 100%; height: auto; }
+
+    /* ── Chart comment callout ────────────────────────────────────── */
+    .callout {
+      display: flex;
+      gap: 14px;
+      align-items: flex-start;
+      background: #f0f6ff;
+      border: 1px solid #b8d0f0;
+      border-left: 5px solid var(--blue-mid);
+      border-radius: var(--radius);
+      padding: 14px 18px;
+      margin-top: 12px;
+      font-size: .91em;
+      color: var(--text);
+      line-height: 1.6;
+    }
+    .callout-icon {
+      font-size: 1.4em;
+      line-height: 1;
+      flex-shrink: 0;
+      margin-top: 2px;
+      color: var(--blue-mid);
+    }
+
+    /* ── Analysis card ────────────────────────────────────────────── */
+    .analysis-section { margin-top: 12px; }
+    .analysis-intro {
+      color: var(--text-soft);
+      margin-bottom: 20px;
+      font-size: .93em;
+      line-height: 1.7;
+    }
+
+    table.values-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: .91em;
+      margin-bottom: 24px;
+    }
+    table.values-table thead tr { background: var(--blue); }
+    table.values-table thead th {
+      color: var(--white);
+      padding: 9px 14px;
+      text-align: left;
+      font-weight: 500;
+      font-size: .82em;
+      text-transform: uppercase;
+      letter-spacing: .05em;
+    }
+    table.values-table thead th:last-child { text-align: right; }
+    table.values-table tbody tr:nth-child(even) td { background: var(--row-even); }
+    table.values-table tbody td {
+      padding: 8px 14px;
+      border-bottom: 1px solid var(--border);
+    }
+    table.values-table tbody td.num {
+      text-align: right;
+      font-weight: 700;
+      font-family: 'Courier New', monospace;
+      font-size: 1em;
+      color: var(--navy);
+      white-space: nowrap;
+    }
+
+    /* ── Legend list ──────────────────────────────────────────────── */
+    .zones-title {
+      font-size: .80em;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .07em;
+      color: var(--text-soft);
+      margin-bottom: 10px;
+    }
+    .legend-list { list-style: none; display: flex; flex-direction: column; gap: 8px; margin-bottom: 20px; }
+    .legend-list li {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      font-size: .88em;
+      color: var(--text);
+      line-height: 1.5;
+    }
+    .legend-swatch {
+      flex-shrink: 0;
+      width: 14px;
+      height: 14px;
+      border-radius: 3px;
+      margin-top: 2px;
+    }
+
+    /* ── Analysis note ────────────────────────────────────────────── */
+    .analysis-note {
+      background: #f7f9fc;
+      border: 1px solid #d0dcea;
+      border-left: 4px solid var(--blue-mid);
+      border-radius: 6px;
+      padding: 14px 18px;
+      color: var(--text-soft);
+      font-style: italic;
+      font-size: .87em;
+      line-height: 1.7;
+    }
+
+    /* ── Conclusion card ──────────────────────────────────────────── */
+    .conclusion-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin: 4px 0 0 0;
+    }
+    .conclusion-list li {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 11px 16px;
+      border-radius: 7px;
+      background: #f4f7fb;
+      border: 1px solid #d6e4f0;
+      font-size: .90em;
+      line-height: 1.65;
+      color: var(--text);
+    }
+    .conclusion-list li .c-icon {
+      font-size: 1.25em;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+    .conclusion-list li .c-bar {
+      width: 4px;
+      border-radius: 3px;
+      flex-shrink: 0;
+      align-self: stretch;
+      min-height: 18px;
+    }
+    .conclusion-list li .c-text { flex: 1; }
+
+    /* ── Footer ───────────────────────────────────────────────────── */
+    .report-footer {
+      margin-top: 56px;
+      border-top: 1px solid var(--border);
+      padding-top: 16px;
+      text-align: center;
+      font-size: .78em;
+      color: #8099b0;
+      letter-spacing: .04em;
+    }
+  </style>
 </head>
 <body>
+
+<!-- ══ TOP HEADER ══════════════════════════════════════════════════════ -->
+<div class="report-header">
+  <div class="report-header-inner">
     {% if company_banner_b64 %}
-    <img class="company-banner"
-         src="data:image/png;base64,{{ company_banner_b64 }}"
-         alt="Company Banner" />
-    {% endif %}
-    <h1>{{ lbl_title }}</h1>
-
-    <h2>{{ lbl_info }}</h2>
-    <table class="info-table">
-        <tr><td>{{ lbl_project_name }}:</td><td>{{ project_name }}</td></tr>
-        <tr><td>{{ lbl_engineer }}:</td><td>{{ engineer }}</td></tr>
-        <tr><td>{{ lbl_date }}:</td><td>{{ generated_on }}</td></tr>
-    </table>
-
-    <h2>{{ lbl_joints_info }}</h2>
-    <table class="info-table">
-        <tr><td>{{ lbl_obj_joint }}:</td><td>{{ obj_joint_name }}</td></tr>
-        <tr><td>{{ lbl_ibj_joint }}:</td><td>{{ ibj_joint_name }}</td></tr>
-        <tr><td>{{ lbl_material_name }}:</td><td>{{ material_name }}</td></tr>
-        <tr><td>{{ lbl_material_shear }}:</td><td>{{ "%.2f" | format(shear_modulus) }}</td></tr>
-    </table>
-
-    <h2>{{ lbl_drawing }}</h2>
-    {{ shaft_svg | safe }}
-
-    <h2>{{ lbl_table }}</h2>
-    <table>
-        <thead>
-            <tr>
-                <th>{{ lbl_seg_num }}</th>
-                <th>{{ lbl_diameter }}</th>
-                <th>{{ lbl_length }}</th>
-                <th>{{ lbl_shear_modulus }}</th>
-                <th>{{ lbl_seg_stiffness }}</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for seg in segments %}
-            <tr>
-                <td>{{ seg.index }}</td>
-                <td>{{ "%.2f" | format(seg.diameter) }}</td>
-                <td>{{ "%.2f" | format(seg.length) }}</td>
-                <td>{{ "%.2f" | format(seg.shear_modulus) }}</td>
-                <td>{{ "%.4f" | format(seg.stiffness) }}</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-
-    <h2>{{ lbl_total_title }}</h2>
-    <div class="total-box">{{ "%.4f" | format(total_stiffness) }} &nbsp; {{ lbl_total_unit }}</div>
-
-    {% if chart_svg %}
-    <h2>{{ lbl_chart_title }}</h2>
-    {{ chart_svg | safe }}
-    {% if chart_comment %}
-    <p class="chart-comment">{{ chart_comment }}</p>
-    {% endif %}
-    {% endif %}
-
-    {% if stress_strain_svg %}
-    <h2>{{ lbl_stress_strain_title }}</h2>
-    {{ stress_strain_svg | safe }}
-
-    {% if tau_max_mpa > 0 and mat_sy > 0 %}
-    <div class="analysis-card">
-
-        <h3>{{ lbl_analysis_title }}</h3>
-        <p class="intro">{{ lbl_analysis_intro }}</p>
-
-        <h4>{{ lbl_values_title }}</h4>
-        <table class="values-table">
-            <thead>
-                <tr><th style="width:70%">{{ lbl_values_title }}</th><th>Valor / Value</th></tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td>{{ lbl_val_tau_max }}</td>
-                    <td class="num">{{ "%.2f" | format(tau_max_mpa) }} MPa</td>
-                </tr>
-                <tr>
-                    <td>{{ lbl_val_tau_yield }}</td>
-                    <td class="num">{{ "%.2f" | format(tau_yield_mpa) }} MPa</td>
-                </tr>
-                <tr>
-                    <td>{{ lbl_val_sf }}</td>
-                    <td class="num" style="color: {{ sf_colour }};">
-                        {{ "%.2f" | format(sf) }}
-                    </td>
-                </tr>
-                <tr>
-                    <td>{{ lbl_val_sy }}</td>
-                    <td class="num">{{ "%.0f" | format(mat_sy) }} MPa</td>
-                </tr>
-                <tr>
-                    <td>{{ lbl_val_su }}</td>
-                    <td class="num">{{ "%.0f" | format(mat_su) }} MPa</td>
-                </tr>
-                <tr>
-                    <td>{{ lbl_val_e }}</td>
-                    <td class="num">{{ "%.0f" | format(mat_e) }} MPa</td>
-                </tr>
-            </tbody>
-        </table>
-
-        <h4>{{ lbl_zone_title }}</h4>
-        <ul>
-            <li>
-                <span class="legend-dot" style="background:#22bb44;opacity:0.55;"></span>
-                {{ lbl_zone_green }}
-            </li>
-            <li>
-                <span class="legend-dot" style="background:#ffcc00;opacity:0.65;"></span>
-                {{ lbl_zone_yellow }}
-            </li>
-            <li>
-                <span class="legend-dot" style="background:#22aa44;border:2px dashed #22aa44;"></span>
-                {{ lbl_zone_green_line }}
-            </li>
-            <li>
-                <span class="legend-dot" style="background:#cc8800;border:2px dashed #cc8800;"></span>
-                {{ lbl_zone_orange_line }}
-            </li>
-            <li>
-                <span class="legend-dot" style="background:#224f84;"></span>
-                {{ lbl_zone_blue_curve }}
-            </li>
-        </ul>
-
-        <div class="analysis-note">
-            {{ lbl_analysis_note }}
-        </div>
-
+    <div class="banner-wrap">
+      <img src="data:image/png;base64,{{ company_banner_b64 }}" alt="Company Banner" />
     </div>
     {% endif %}
+    <div class="report-header-text">
+      <h1>{{ lbl_title }}</h1>
+    </div>
+  </div>
+  <div class="header-divider"></div>
+</div>
 
-    {% endif %}
+<div class="page">
 
+  <!-- ══ PROJECT INFO ═══════════════════════════════════════════════════ -->
+  <div class="section-title"><span class="pill"></span><h2>{{ lbl_info }}</h2></div>
+  <div class="card">
+    <div class="card-body">
+      <div class="info-grid">
+        <div class="info-block">
+          <div class="info-row">
+            <span class="info-label">{{ lbl_project_name }}</span>
+            <span class="info-value">{{ project_name }}</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">{{ lbl_engineer }}</span>
+            <span class="info-value">{{ engineer }}</span>
+          </div>
+          <!-- Data de geração removida -->
+        </div>
+        <div class="info-block">
+          <div class="info-row">
+            <span class="info-label">{{ lbl_obj_joint }}</span>
+            <span class="info-value">{{ obj_joint_name }}</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">{{ lbl_ibj_joint }}</span>
+            <span class="info-value">{{ ibj_joint_name }}</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">{{ lbl_material_name }}</span>
+            <span class="info-value">{{ material_name }}</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">{{ lbl_material_shear }}</span>
+            <span class="info-value">{{ "%.2f" | format(shear_modulus) }} MPa</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ SHAFT DRAWING ══════════════════════════════════════════════════ -->
+  <div class="section-title"><span class="pill"></span><h2>{{ lbl_drawing }}</h2></div>
+  <div class="svg-wrap">{{ shaft_svg | safe }}</div>
+
+  <!-- ══ SEGMENT TABLE ══════════════════════════════════════════════════ -->
+  <div class="section-title"><span class="pill"></span><h2>{{ lbl_table }}</h2></div>
+  <div class="card">
+    <div class="data-table-wrap">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>{{ lbl_seg_num }}</th>
+            <th>{{ lbl_diameter }}</th>
+            <th>{{ lbl_length }}</th>
+            <th>{{ lbl_shear_modulus }}</th>
+            <th>{{ lbl_seg_stiffness }}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for seg in all_segs_table %}
+          <tr{% if seg.excluded %} class="seg-excluded"{% endif %}>
+            <td>{{ seg.index }}</td>
+            <td>{{ "%.2f" | format(seg.diameter) }}</td>
+            <td>{{ "%.2f" | format(seg.length) }}</td>
+            <td>{{ "%.2f" | format(seg.shear_modulus) }}</td>
+            <td>{% if seg.excluded %}{{ lbl_not_applied }}{% else %}{{ "%.4f" | format(seg.stiffness) }}{% endif %}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ══ TOTAL STIFFNESS KPI ════════════════════════════════════════════ -->
+  <div class="section-title"><span class="pill"></span><h2>{{ lbl_total_title }}</h2></div>
+  <div class="kpi-wrap">
+    <div class="kpi-accent-bar"></div>
+    <div class="kpi-body">
+      <div class="kpi-label">{{ lbl_total_title }}</div>
+      <div class="kpi-value">{{ "%.4f" | format(total_stiffness) }}</div>
+      <div class="kpi-unit">{{ lbl_total_unit }}</div>
+    </div>
+  </div>
+
+  <!-- ══ STIFFNESS CHART ════════════════════════════════════════════════ -->
+  {% if chart_svg %}
+  <div class="section-title"><span class="pill"></span><h2>{{ lbl_chart_title }}</h2></div>
+  <div class="svg-wrap">{{ chart_svg | safe }}</div>
+  {% if chart_comment %}
+  <div class="callout">
+    <span class="callout-icon">&#9432;</span>
+    <span>{{ chart_comment }}</span>
+  </div>
+  {% endif %}
+  {% endif %}
+
+  <!-- ══ NATURAL FREQUENCIES CHART ═════════════════════════════════════ -->
+  {% if freq_chart_svg %}
+  <div class="section-title"><span class="pill"></span><h2>{{ lbl_freq_chart_title }}</h2></div>
+  <div class="svg-wrap">{{ freq_chart_svg | safe }}</div>
+  <div class="callout">
+    <span class="callout-icon">&#x1D6C6;</span>
+    <span>
+      {{ lbl_freq_chart_intro }}<br>
+      <strong>{{ lbl_freq_mode_1 }}:</strong> {{ "%.2f" | format(natural_freqs[0]) }} {{ lbl_freq_unit }}
+      &nbsp;&nbsp;
+      <strong>{{ lbl_freq_mode_2 }}:</strong> {{ "%.2f" | format(natural_freqs[1]) }} {{ lbl_freq_unit }}
+      &nbsp;&nbsp;
+      <strong>{{ lbl_freq_mode_3 }}:</strong> {{ "%.2f" | format(natural_freqs[2]) }} {{ lbl_freq_unit }}
+      {% if shaft_mass_kg is defined and shaft_mass_kg > 0 %}
+      &nbsp;&nbsp;|&nbsp;&nbsp;
+      <strong>{{ lbl_mass }}:</strong> {{ "%.3f" | format(shaft_mass_kg) }} kg
+      {% endif %}
+    </span>
+  </div>
+  {% endif %}
+
+  <!-- ══ STRESS-STRAIN CURVE ════════════════════════════════════════════ -->
+  {% if stress_strain_svg %}
+  <div class="section-title"><span class="pill"></span><h2>{{ lbl_stress_strain_title }}</h2></div>
+  <div class="svg-wrap">{{ stress_strain_svg | safe }}</div>
+
+  {% if tau_max_mpa > 0 and mat_sy > 0 %}
+  <!-- ══ ANALYSIS CARD ═══════════════════════════════════════════════════ -->
+  <div class="section-title"><span class="pill"></span><h2>{{ lbl_analysis_title }}</h2></div>
+  <div class="card">
+    <div class="card-body analysis-section">
+
+      <p class="analysis-intro">{{ lbl_analysis_intro }}</p>
+
+      <!-- Values table -->
+      <div class="zones-title">{{ lbl_values_title }}</div>
+      <table class="values-table">
+        <thead>
+          <tr>
+            <th style="width:68%">{{ lbl_values_title }}</th>
+            <th>Valor&nbsp;/&nbsp;Value</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>{{ lbl_val_tau_max }}</td>
+            <td class="num">{{ "%.2f" | format(tau_max_mpa) }}&nbsp;MPa</td>
+          </tr>
+          <tr>
+            <td>{{ lbl_val_tau_yield }}</td>
+            <td class="num">{{ "%.2f" | format(tau_yield_mpa) }}&nbsp;MPa</td>
+          </tr>
+          <tr>
+            <td>{{ lbl_val_sf }}</td>
+            <td class="num" style="color:{{ sf_colour if sf_colour else '#000' }};">
+              {{ "%.2f" | format(sf) }}
+            </td>
+          </tr>
+          <tr>
+            <td>{{ lbl_val_sy }}</td>
+            <td class="num">{{ "%.0f" | format(mat_sy) }}&nbsp;MPa</td>
+          </tr>
+          <tr>
+            <td>{{ lbl_val_su }}</td>
+            <td class="num">{{ "%.0f" | format(mat_su) }}&nbsp;MPa</td>
+          </tr>
+          <tr>
+            <td>{{ lbl_val_e }}</td>
+            <td class="num">{{ "%.0f" | format(mat_e) }}&nbsp;MPa</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <!-- Legend -->
+      <div class="zones-title">{{ lbl_zone_title }}</div>
+      <ul class="legend-list">
+        <li>
+          <span class="legend-swatch" style="background:rgba(34,187,68,.45);border:1px solid rgba(34,187,68,.6);"></span>
+          <span>{{ lbl_zone_green }}</span>
+        </li>
+        <li>
+          <span class="legend-swatch" style="background:rgba(255,204,0,.55);border:1px solid rgba(200,150,0,.5);"></span>
+          <span>{{ lbl_zone_yellow }}</span>
+        </li>
+        <li>
+          <span class="legend-swatch" style="background:#22aa44;border:2px dashed #22aa44;"></span>
+          <span>{{ lbl_zone_green_line }}</span>
+        </li>
+        <li>
+          <span class="legend-swatch" style="background:#cc8800;border:2px dashed #cc8800;"></span>
+          <span>{{ lbl_zone_orange_line }}</span>
+        </li>
+        <li>
+          <span class="legend-swatch" style="background:#224f84;"></span>
+          <span>{{ lbl_zone_blue_curve }}</span>
+        </li>
+      </ul>
+
+      <!-- Note -->
+      <div class="analysis-note">{{ lbl_analysis_note }}</div>
+
+    </div>
+  </div>
+  {% endif %}
+  {% endif %}
+
+  <!-- ══ CONCLUSION ════════════════════════════════════════════════════ -->
+  {% if conclusion_available %}
+  <div class="section-title"><span class="pill"></span><h2>{{ lbl_conclusion_title }}</h2></div>
+  <div class="card">
+    <div class="card-body">
+      <ul class="conclusion-list">
+        {% for item in conclusion_items %}
+        <li>
+          <span class="c-icon">{{ item.icon }}</span>
+          <span class="c-bar" style="background:{{ item.colour }};"></span>
+          <span class="c-text">{{ item.label }}</span>
+        </li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- ══ FOOTER ═════════════════════════════════════════════════════════ -->
+  <div class="report-footer">
+    {{ lbl_title }} &nbsp;·&nbsp; {{ generated_on }}
+  </div>
+
+</div><!-- .page -->
 </body>
 </html>

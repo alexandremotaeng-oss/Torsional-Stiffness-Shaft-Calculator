@@ -1,6 +1,7 @@
 [
     {
         "name": "01A92",
+        "offset": 30.0,
         "sections": [
             {
                 "diameter": 25.4,
@@ -25,11 +26,28 @@
             {
                 "diameter": 26.0,
                 "length": 10.0
+            },
+            {
+                "diameter": 0.0,
+                "length": 0.0
+            },
+            {
+                "diameter": 0.0,
+                "length": 0.0
+            },
+            {
+                "diameter": 0.0,
+                "length": 0.0
+            },
+            {
+                "diameter": 0.0,
+                "length": 0.0
             }
         ]
     },
     {
         "name": "02A92",
+        "offset": 10.0,
         "sections": [
             {
                 "diameter": 25.4,
@@ -54,6 +72,22 @@
             {
                 "diameter": 26.0,
                 "length": 10.0
+            },
+            {
+                "diameter": 0.0,
+                "length": 0.0
+            },
+            {
+                "diameter": 0.0,
+                "length": 0.0
+            },
+            {
+                "diameter": 0.0,
+                "length": 0.0
+            },
+            {
+                "diameter": 0.0,
+                "length": 0.0
             }
         ]
     }

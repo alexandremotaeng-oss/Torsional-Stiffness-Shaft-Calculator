@@ -1,319 +1,322 @@
 ﻿# Torsional Stiffness Shaft Calculator
 
-A desktop application for calculating the **torsional stiffness** of multi-segment shafts used in driveline and powertrain engineering. Built with Python and Tkinter, with multilingual support and HTML report generation.
+A desktop engineering application for calculating the **torsional stiffness**, **torsional natural frequencies**, and **mass** of multi-segment driveline shafts. Built with Python and Tkinter, with multilingual support (pt\_BR / en / zh), project management, FRF chart, HTML report generation, and STEP 3D export.
 
 ---
 
-## Features
+## Table of Contents
 
-- **Multi-segment shaft model** — define up to 13 individual shaft sections with different diameters, lengths, and materials
-- **Torsional stiffness calculation** — series combination formula based on shear modulus, polar moment of inertia, and segment length
-- **Graphical shaft preview** — live canvas drawing of the shaft cross-section profile with segment markers (P11/P18) and diameter labels
-- **HTML report generation** — complete engineering report with inline SVG drawings, charts, and material analysis (see [Report and Charts](#report-and-charts))
-- **STEP export** — exports a 3D shaft geometry via CadQuery (`.stp` file)
-- **Joint management** — add, edit, and delete predefined joint types with configurable segment geometries
-- **Material management** — library of 20 automotive metals with shear modulus G, elastic modulus E, yield strength Sy and ultimate strength Su
-- **Multilingual UI** — Portuguese (pt_BR), English (en), and Chinese Simplified (zh)
-- **Application icon and company banner** — embedded visual identity in app and report
-- **Status bar** — displays app version in the currently selected language
+1. [Engineering Background](#engineering-background)
+2. [Shaft Model and Geometry](#shaft-model-and-geometry)
+3. [Calculation Methodology](#calculation-methodology)
+4. [Frequency Response Function (FRF) Chart](#frequency-response-function-frf-chart)
+5. [Offset and Excluded Segments](#offset-and-excluded-segments)
+6. [Compatibility Search](#compatibility-search)
+7. [Report and Charts](#report-and-charts)
+<!-- 8. [Project Structure](#project-structure) -->
+1. [Requirements and Installation](#requirements-and-installation)
+2. [Running and Debugging](#running-and-debugging)
+3. [Multilingual Support](#multilingual-support)
 
 ---
 
-## Calculation Formulas
+## Engineering Background
 
-### Segment stiffness
+Torsional stiffness is a fundamental design parameter in driveline systems. It governs:
 
-For each segment $i$, the torsional stiffness in N·m/degree is:
+- **Natural frequencies** of the driveline torsional system — directly influencing NVH (Noise, Vibration and Harshness) targets.
+- **Torque distribution** and angular compliance under load.
+- **Durability** — shafts that are too compliant may amplify dynamic loads; shafts that are too stiff may transmit shock loads into adjacent components.
 
-$$K_i = \frac{G_i \cdot J_i}{L_i} \cdot \frac{\pi}{180}$$
+In automotive driveline engineering, a propshaft or halfshaft is modelled as a **series of cylindrical sections** connected to constant-velocity joints (OBJ and IBJ). Each segment contributes a finite stiffness $K_i$; the assembly behaves as springs in series.
 
-where:
+---
 
-| Symbol | Description | Unit |
+## Shaft Model and Geometry
+
+### Segment definition
+
+Each segment is defined by three parameters:
+
+| Parameter | Symbol | Unit |
 | --- | --- | --- |
-| $G_i$ | Shear modulus | Pa |
-| $J_i = \pi D_i^4 / 32$ | Polar moment of inertia | m^4 |
-| $L_i$ | Segment length | m |
+| Outer diameter | $D_i$ | mm |
+| Axial length | $L_i$ | mm |
+| Material shear modulus | $G_i$ | MPa |
 
-### Total shaft stiffness (segments in series)
+Segments with $D_i = 0$ or $L_i = 0$ are automatically excluded from all calculations.
+
+### Full shaft assembly
+
+```markdown
++---------- OBJ Joint ----------+---- Central Shaft ----+---------- IBJ Joint ----------+
+|  sec1 | sec2 | ... | sec10    |   O(D) x L_central    |  sec10 | ... | sec2 | sec1    |
++-------------------------------+-----------------------+-------------------------------+
+        <-- obj_len -->                <-- L_bare -->           <-- ibj_len -->
+   Pwc (obj_offset from left end)                    Ptl (ibj_offset from right end)
+```
+
+**OBJ joint** — sections defined inside-out (section 1 nearest the joint centre).
+**IBJ joint** — sections reversed so section 1 is outermost right, preserving symmetry.
+**Central segment** — a single bare shaft tube with the user-specified diameter and derived length.
+
+### Pwc (Point of Wheel Center) / Ptl (Point of Transmission Line Center) reference planes
+
+| Marker | Location |
+| --- | --- |
+| **Pwc** | `obj_offset` mm from the left end of the shaft |
+| **Ptl** | `ibj_offset` mm from the right end of the shaft |
+
+The user inputs the **Pwc to Ptl distance** (centre-to-centre). The application back-calculates the central bare length:
+
+```
+L_bare    = L(Pwc->Ptl) - L_OBJ - L_IBJ + delta_OBJ + delta_IBJ
+L_central = L_bare - delta_OBJ - delta_IBJ
+```
+
+where `delta_OBJ` and `delta_IBJ` are the OBJ and IBJ offset values respectively.
+
+---
+
+## Calculation Methodology
+
+### 1 — Polar moment of inertia
+
+For a solid circular cross-section of diameter $D$:
+
+$$J_i = \frac{\pi D_i^4}{32}$$
+
+### 2 — Segment torsional stiffness
+
+$$K_i = \frac{G_i \cdot J_i}{L_i} \quad \text{[N·m/rad]}$$
+
+Converted to the engineering unit **N·m/degree**:
+
+$$K_i^\circ = K_i \cdot \frac{\pi}{180}$$
+
+### 3 — Total shaft stiffness (springs in series)
 
 $$\frac{1}{K_\text{total}} = \sum_{i=1}^{n} \frac{1}{K_i}$$
 
-Result expressed in **N·m/degree**.
+$$K_\text{total}^\circ = K_\text{total} \cdot \frac{\pi}{180} \quad \text{[N·m/degree]}$$
 
-### Torsional shear stress per segment
+> **Engineering implication:** In a series arrangement the weakest (most compliant) segment dominates. Improving the dominant segment yields far greater gains than improving a stiffer one.
 
-The maximum surface torsional shear stress at 1 degree of input twist is:
+### 4 — Shaft mass
 
-$$\tau_i = \frac{T_i \cdot (D_i / 2)}{J_i} \quad \text{where} \quad T_i = K_{i,\text{rad}} \cdot \frac{\pi}{180}$$
+Each segment is treated as a solid cylinder:
 
-The critical (worst-case) segment is the one with the **highest** tau_i.
+$$m_i = \rho \cdot \pi \cdot \left(\frac{D_i}{2}\right)^2 \cdot L_i \quad \text{[kg]}$$
 
-### Shear yield criterion (von Mises)
+Default density: $\rho = 7850\ \text{kg/m}^3$ (steel).
+
+$$m_\text{total} = \sum_{i} m_i$$
+
+Displayed alongside the 1st natural frequency in the Results bar.
+
+### 5 — Torsional natural frequencies
+
+The shaft is modelled as a **free-free lumped-parameter torsional chain** with $n$ springs and $n+1$ lumped polar inertia nodes.
+
+**Polar mass moment of inertia** per segment (solid cylinder):
+
+$$I_i = \frac{\rho \cdot \pi \cdot D_i^4 \cdot L_i}{32} \quad \text{[kg·m}^2\text{]}$$
+
+**Lumped inertia nodes** — each node accumulates half of its two adjacent segment inertias:
+
+$$I_0 = \tfrac{1}{2}I_\text{seg,0}, \quad I_j = \tfrac{1}{2}I_\text{seg,j-1} + \tfrac{1}{2}I_\text{seg,j} \; (j=1..n{-}1), \quad I_n = \tfrac{1}{2}I_\text{seg,n-1}$$
+
+**Generalised eigenvalue problem:**
+
+$$\mathbf{K}\,\boldsymbol{\theta} = \omega^2\,\mathbf{M}\,\boldsymbol{\theta}$$
+
+Solved by normalising to a standard symmetric eigenproblem and applying the **Jacobi iteration** (exact for the small matrices, max 14 DOF, produced by real joint/shaft assemblies). The rigid-body mode ($\omega = 0$) is discarded; the first three non-zero eigenvalues give:
+
+$$f_k = \frac{\omega_k}{2\pi} \quad \text{[Hz]}$$
+
+### 6 — Maximum torsional shear stress
+
+Shear stress at 1° of elastic twist in segment $i$ (geometric reference, not an operating load):
+
+$$T_i = K_{i,\text{rad}} \cdot \frac{\pi}{180}, \qquad \tau_i = \frac{T_i \cdot (D_i/2)}{J_i} \quad \text{[MPa]}$$
+
+$$\tau_\text{max} = \max_i(\tau_i)$$
+
+### 7 — Shear yield criterion (von Mises)
 
 $$\tau_\text{yield} = \frac{S_y}{\sqrt{3}} \approx 0.577 \cdot S_y$$
 
-### Safety factor in shear
+### 8 — Safety factor in shear
 
 $$SF = \frac{\tau_\text{yield}}{\tau_\text{max}}$$
 
----
-
-## Requirements
-
-| Dependency | Version |
-| --- | --- |
-| Python | >= 3.10 |
-| tkinter | bundled with Python |
-| Jinja2 | >= 3.0 |
-| CadQuery | >= 2.7 |
+| SF range | Colour | Meaning |
+| --- | --- | --- |
+| $SF \geq 2.0$ | Green | Large shear margin — geometry is conservative |
+| $1.0 \leq SF < 2.0$ | Amber | Moderate margin — within design range |
+| $SF < 1.0$ | Grey | tau_max > tau_yield at 1° twist (informational only) |
 
 ---
 
-## Installation
+## Frequency Response Function (FRF) Chart
 
-1. **Clone or copy** the project folder.
+The HTML report includes an **Amplitude vs Frequency** FRF chart generated from the three computed natural frequencies.
 
-2. **Install dependencies** (Python 3.10+ must be on PATH):
+### Model
 
-   ```powershell
-   pip install jinja2 cadquery
-   ```
+Single-DOF receptance superposition with constant damping ratio $\zeta = 0.02$:
+
+$$H(f) = \sum_{k=1}^{3} \frac{1}{\sqrt{(1 - r_k^2)^2 + (2\,\zeta\,r_k)^2}}, \qquad r_k = \frac{f}{f_k}$$
+
+Frequency sweep: $0$ to $1.4 \times f_\text{max}$, sampled at 900 equally-spaced points.
+
+### Chart features
+
+- **X axis:** frequency (Hz)
+- **Y axis:** normalised amplitude $H(f)$, linear scale
+- **Three resonance peaks** annotated with mode label and frequency value
+- Vertical dashed guide lines at $f_1$, $f_2$, $f_3$
+- Filled area under the FRF curve (semi-transparent blue)
+- Damping ratio annotation ($\zeta = 0.02$) in the top-right corner
 
 ---
 
-## Usage
+## Offset and Excluded Segments
 
-Run the application directly from the project root:
+Each joint carries an **offset** value (mm). Segments whose start position lies inside the offset zone are **excluded from the stiffness calculation** — they are structurally constrained inside the joint housing.
 
-```powershell
-python main.py
+### Trimming rule
+
+```
+OBJ side (measured left -> right):
+  segment start >= obj_offset  ->  INCLUDED
+  segment start <  obj_offset  ->  EXCLUDED
+
+IBJ side (measured right -> left, mirrored):
+  segment start >= ibj_offset  ->  INCLUDED
+  segment start <  ibj_offset  ->  EXCLUDED
 ```
 
-### Workflow
+Excluded segments are still drawn in the shaft schematic and listed in the report table, but their stiffness column shows **NAO APLICADO / Not Applied / 不适用** depending on the active language.
 
-1. Enter **Project Name** and **Engineer** in the top fields.
-2. Select the **OBJ Joint** and **IBJ Joint** types from the dropdowns.
-3. Enter the **shaft diameter** (mm) and **length** (mm) for the intermediate segment.
-4. Select a **material** -- the shear modulus G is auto-filled from the library.
-5. Click **Calcular / Calculate / 计算** to compute total torsional stiffness.
-6. Optionally:
-   - Click **Gerar Relatorio** to generate and open the HTML report.
-   - Click **Exportar .STP** to export a STEP 3D model.
-   - Use **Gerenciar Juntas / Manage Joints** to edit the joint library.
-   - Use **Gerenciar Materiais / Manage Materials** to edit the material library.
+---
+
+## Compatibility Search
+
+**Buscar Compatibilidade / Search Compatibility** compares the current configuration against all saved projects and returns a ranked list with a 0–100% compatibility score.
+
+### Scoring
+
+| Component | Weight | Metric |
+| --- | --- | --- |
+| Joint geometry (OBJ + IBJ) | 40% | Mean segment-level diameter + length similarity |
+| Shaft diameter | 20% | 1 - &#124;delta D&#124; / max(D) |
+| Shaft length (Pwc–Ptl) | 20% | 1 - &#124;delta L&#124; / max(L) |
+| Material | 20% | 50% name match + 50% shear modulus closeness |
+
+$$\text{score} = 0.40 \cdot \frac{\text{sim}_\text{OBJ} + \text{sim}_\text{IBJ}}{2} + 0.20 \cdot \text{sim}_D + 0.20 \cdot \text{sim}_L + 0.20 \cdot \text{sim}_\text{mat}$$
+
+Results are sorted descending by score. Selecting a result and clicking **Carregar / Load** opens that project directly.
 
 ---
 
 ## Report and Charts
 
-Clicking **Gerar Relatorio** generates `report.html` and opens it in the default browser. The report is a self-contained HTML file -- all SVGs are inline, the company banner is base64-embedded -- divided into the sections below.
+Clicking **Gerar Relatorio / Generate Report** produces `report.html` (in the project root) and opens it in the default browser. All SVG graphics are inline; the company banner is base64-embedded, making the file fully self-contained.
 
----
+### Report sections
 
-### 1 - Header and Project Information
-
-| Field | Description |
-| --- | --- |
-| Company banner | `assets/empresa.png` embedded as a base64 PNG |
-| Report title | Localised main heading |
-| Project Name | As entered in the main window |
-| Engineer | As entered in the main window |
-| Generated on | Date and time of report generation (DD/MM/YYYY HH:MM) |
-
----
-
-### 2 - Joints and Material
-
-Summarises the configuration context:
-
-| Field | Description |
-| --- | --- |
-| OBJ Joint | Name of the outer-body joint selected |
-| IBJ Joint | Name of the inner-body joint selected |
-| Material | Name of the selected material |
-| Shear Modulus G | G value of the material (MPa) |
-
----
-
-### 3 - Shaft Schematic Drawing (SVG)
-
-An inline SVG (900 x 160 px, dark background) that shows the cross-section silhouette of the full shaft:
-
-- Each segment is drawn as a **coloured rectangle** whose height is proportional to its diameter (half-scale relative to the tallest segment).
-- Colour bands cycle through a palette of engineering blues (`#1a3a5c`, `#224f84`, `#2a6090`, ...).
-- **Internal dividers** (light-blue vertical lines) separate adjacent segments.
-- **Top and bottom silhouette edges** trace the exact stepped profile.
-- **Left and right end caps** close the geometry.
-- When exactly 13 segments are present, two additional annotations appear:
-  - **P11 / P18 reference lines** -- dashed red vertical markers with labels identifying the standard measurement planes.
-  - **Dimension arrow** -- a yellow horizontal arrow between P11 and P18 with the inter-plane distance in mm.
-  - **Central diameter label** -- the diameter of the middle segment (segment 7) shown below the shaft in light blue.
-
----
-
-### 4 - Segment Calculation Table
-
-A table with one row per shaft segment:
-
-| Column | Description |
-| --- | --- |
-| # | Segment index (1 to n) |
-| Diameter (mm) | Cross-section diameter |
-| Length (mm) | Axial length |
-| Shear Modulus (MPa) | Material G for this segment |
-| Segment Stiffness (N·m/deg) | Ki computed for this segment |
-
-The **Total Torsional Stiffness** box below the table shows K_total in N·m/deg, calculated from the series formula.
-
----
-
-### 5 - Torsional Stiffness Line Chart by Segment (SVG)
-
-An inline SVG (900 × 320 px, light background) line chart comparing individual segment stiffness values:
-
-- **Filled area** under the line (semi-transparent blue) gives immediate visual weight to the overall stiffness profile.
-- **Polyline** (dark blue) connects all segment data points.
-- **Circle dot markers** (r = 5, white border) sit at each data point.
-- **Stiffness value** printed above each dot (or below if close to the top edge).
-- One **X-axis label per segment** — "# 1", "# 2", ... evenly spaced.
-- **Y axis** — stiffness in N·m/deg; scale rounded to a sensible magnitude automatically.
-- **Grid lines** (light-blue dashed horizontals) at 6 evenly-spaced levels.
-- Segments with zero length or zero diameter (Ki = ∞) are excluded from the scale and rendered at the grid ceiling.
-
-Below the chart a **highlighted comment** identifies the weakest segment (lowest stiffness), its value, and the total shaft stiffness, explaining its dominant role in the series combination and suggesting design improvement actions. The text is shown in the currently selected language (pt_BR / en / zh).
-
-> **Purpose:** Immediately shows which segment is the design bottleneck and by how much it dominates the total compliance.
-
----
-
-### 6 - Material Stress-Strain Curve (SVG)
-
-An inline SVG (900 x 380 px) showing the bilinear elastic-plastic model of the selected material, with the operating limits of the calculated shaft projected onto the curve.
-
-#### 6.1 - Stress-strain curve (sigma-epsilon)
-
-The curve uses a **bilinear elastic-plastic** model with four key points:
-
-| Point | Strain epsilon | Stress sigma | Description |
-| --- | --- | --- | --- |
-| O | 0 | 0 | Origin |
-| A | Sy / E | Sy | Yield point |
-| B | epsilon_y + (Su - Sy) / (0.05 * E) | Su | Ultimate strength |
-| C | epsilon_B x 1.25 | 0.60 * Su | Fracture (simplified necking drop) |
-
-- **Blue polyline** (O to A to B to C) traces the stress-strain path.
-- **Blue-shaded triangle** under the O-A segment represents the elastic strain energy density.
-- **Orange dot + crosshairs** at point A annotate the yield point (Sy in MPa and epsilon_y value).
-- **Red dot + horizontal line** at point B annotate the ultimate strength (Su in MPa and epsilon_u value).
-- Material name printed in italic in the top-right corner of the chart.
-
-#### 6.2 - Dual Y axes
-
-| Axis | Side | Colour | Scale |
-| --- | --- | --- | --- |
-| Normal stress sigma (MPa) | Left | Dark blue | 0 to 1.20 * Su |
-| Shear stress tau (MPa) | Right | Green | tau = sigma * 0.577 (von Mises) |
-
-Both axes share the same grid lines. The right axis re-labels each gridline in shear stress units so the engineer can read tau directly.
-
-#### 6.3 - Shaft operating zone overlay
-
-The chart overlays the actual torsional shear stress of the shaft at 1 degree of input twist:
-
-| Element | Colour | Meaning |
+| # | Section | Content |
 | --- | --- | --- |
-| **Green band** (0 to tau_max) | #22bb44 at 10% opacity | Safe operating zone of the shaft |
-| **Yellow band** (tau_max to tau_yield) | #ffcc00 at 13% opacity | Available safety margin before shear yield |
-| **Green dashed line** at tau_max | #22aa44 | Maximum torsional shear stress on the most-loaded segment |
-| **Orange dashed line** at tau_yield | #cc8800 | Shear yield limit: tau_yield = 0.577 * Sy |
-| **SF label** (top-left) | Green text | Safety factor: SF = tau_yield / tau_max |
+| 1 | Header | Company banner, project name, engineer, generation timestamp |
+| 2 | Shaft Schematic (SVG) | Colour-banded cross-section profile, diameter/length labels, Pwc/Ptl markers |
+| 3 | Segment Table | Diameter, length, G, individual stiffness (or Not Applied for excluded segments) |
+| 4 | Total Stiffness KPI | K_total in N·m/degree — large highlighted block |
+| 5 | Stiffness Chart (SVG) | Line chart of per-segment stiffness with weakest-segment callout |
+| 6 | FRF Chart (SVG) | Amplitude vs Frequency with peaks at f1, f2, f3 and shaft mass in callout |
+| 7 | Stress-Strain Curve (SVG) | Bilinear elastic-plastic material curve with operating zone overlay and SF |
+| 8 | Operating Limits Analysis | tau_max, tau_yield, SF, full material properties table |
 
-**If the shaft is overstressed** (tau_max >= tau_yield, i.e. SF < 1):
+---
 
-| Element | Colour | Meaning |
+## Requirements and Installation
+
+### Dependencies
+
+| Dependency | Version | Purpose |
 | --- | --- | --- |
-| **SF label** displayed in grey | #888888 | Ratio shown as informational reference only (not a pass/fail indicator) |
+| Python | >= 3.10 | Runtime |
+| tkinter | bundled | GUI (included with the standard Python installer) |
+| Jinja2 | >= 3.0 | HTML report templating |
+| CadQuery | >= 2.7 | STEP 3D export (optional) |
 
-> **Note:** τ_max is **not** an operating load — it is the shear stress that would develop at exactly 1° of elastic twist, used as a geometric/material reference to position the shaft on the curve. For a real strength assessment, enter the nominal design torque.
+### Installation
 
----
-
-## Material Library
-
-The library (`data/materials.json`) ships with **20 automotive metals**:
-
-| Material | G (MPa) | E (MPa) | Sy (MPa) | Su (MPa) |
-| --- | --- | --- | --- | --- |
-| SAE 1020 Steel | 80 000 | 205 000 | 210 | 380 |
-| SAE 1045 Steel | 80 000 | 210 000 | 310 | 565 |
-| SAE 4130 Steel | 80 000 | 205 000 | 460 | 560 |
-| SAE 4140 Steel | 80 000 | 207 000 | 655 | 1020 |
-| SAE 4340 Steel | 77 000 | 205 000 | 470 | 745 |
-| SAE 8620 Steel | 80 000 | 207 000 | 385 | 530 |
-| AISI 304 Stainless | 75 000 | 193 000 | 215 | 505 |
-| AISI 316 Stainless | 75 000 | 193 000 | 170 | 485 |
-| AISI 52100 Bearing | 80 000 | 210 000 | 1520 | 1900 |
-| 17-4 PH Stainless | 77 000 | 197 000 | 1170 | 1310 |
-| AA 6061-T6 Aluminium | 26 000 | 68 900 | 276 | 310 |
-| AA 7075-T6 Aluminium | 26 900 | 71 700 | 503 | 572 |
-| AA 2024-T3 Aluminium | 27 600 | 73 100 | 345 | 483 |
-| Ti-6Al-4V Titanium | 44 000 | 114 000 | 880 | 950 |
-| Inconel 718 | 77 000 | 200 000 | 1034 | 1241 |
-| Gray Cast Iron | 41 000 | 100 000 | -- | 200 |
-| Ductile Cast Iron | 69 000 | 169 000 | 276 | 414 |
-| Copper C110 | 44 000 | 117 000 | 70 | 220 |
-| Bronze SAE 660 | 38 000 | 103 000 | 125 | 240 |
-| Magnesium AZ31B | 17 000 | 45 000 | 220 | 290 |
-
-All values can be edited, added, or removed at runtime through **Gerenciar Materiais / Manage Materials**.
-
----
-
-## File Structure
-
-```text
-Torsional Stiffness Shaft/
-├── main.py                   # Entry point — run directly with: python main.py
-├── calculator.py             # Torsional stiffness calculation logic
-├── report_generator.py       # HTML report builder (Jinja2 + inline SVG)
-├── joint_management.py       # Joint CRUD window
-├── material_management.py    # Material CRUD window (name, G, E, Sy, Su)
-├── translator.py             # i18n / locale helper
-├── stp_exporter.py           # STEP 3D export via CadQuery
-├── README.md                 # This file
-│
-├── templates/
-│   └── report_template.html  # Jinja2 HTML report template
-│
-├── data/
-│   ├── joints.json           # Joint library data
-│   └── materials.json        # Material library (20 automotive metals)
-│
-├── locale/
-│   ├── pt_BR/translation.json  # Brazilian Portuguese strings
-│   ├── en/translation.json     # English strings
-│   └── zh/translation.json     # Chinese Simplified strings
-│
-└── assets/
-    ├── icon.png              # Application icon (64×64)
-    └── empresa.png           # Company banner for HTML report (900×120)
+```powershell
+pip install jinja2
 ```
 
+CadQuery (optional, only for **Exportar .STP**):
+
+```powershell
+pip install cadquery
+```
+
+> CadQuery requires a 64-bit Python environment. All other features work without it.
+
 ---
 
-## Supported Languages
+## Running and Debugging
 
-| Code | Language | Status bar text |
+### Run directly
+
+```powershell
+python main.py
+```
+
+### Debug in VS Code
+
+A `.vscode/launch.json` is included with a pre-configured debug profile. Open the project folder in VS Code, select **"Torsional Stiffness Shaft"** in the Run & Debug panel, and press **F5**.
+
+### Workflow
+
+1. **Projects** — type a name in the project combobox and click **Salvar** to save. Click **Carregar** to restore a saved project.
+2. **Header** — enter Project Name and Engineer name.
+3. **Shaft** — select OBJ and IBJ joints from the dropdowns. Enter shaft outer diameter (mm) and Pwc→Ptl distance (mm).
+4. **Material** — select a material from the library; shear modulus G is auto-filled.
+5. **Calcular** — computes torsional stiffness (N·m/degree), 1st natural frequency (Hz), and shaft mass (kg). Shaft drawing updates automatically.
+6. **Tools menu:**
+   - **Gerenciar Juntas** — add, edit, or delete joint definitions (up to 10 sections each with diameter, length, and offset).
+   - **Gerenciar Materiais** — add, edit, or delete materials (name, G, E, Sy, Su).
+   - **Gerar Relatorio** — generates `report.html` and opens it in the default browser.
+   - **Exportar .STP** — exports a STEP 3D model of the active shaft geometry.
+   - **Buscar Compatibilidade** — finds the most geometrically similar saved projects.
+
+### Project save / load and DB reconciliation
+
+When loading a project, the application compares joint and material data stored in the project JSON against the current libraries (`data/joints.json`, `data/materials.json`). If a discrepancy is detected, the user is prompted to:
+
+- **Add** the missing entry to the library, or
+- **Update** the library with the project values.
+
+This ensures that loading a project always results in a consistent, reproducible calculation.
+
+---
+
+## Multilingual Support
+
+Change the language at runtime using the **Idioma / Language** dropdown. The entire UI, all dialogs, report labels, and default names update immediately without restarting the application.
+
+| Code | Language | Notes |
 | --- | --- | --- |
-| `pt_BR` | Portugues (Brasil) | Versao 1.0 |
-| `en` | English | Version 1.0 |
-| `zh` | Chinese (Simplified) | Version 1.0 |
+| `pt_BR` | Portugues (Brasil) | Default |
+| `en` | English | — |
+| `zh` | Chinese Simplified (中文) | — |
 
-Change the language at runtime using the **Idioma / Language** dropdown in the main window.
+Translation strings are stored in `locale/<code>/translation.json`. To add a new language, create the folder and JSON file with the same keys as an existing translation file.
 
 ---
 
 ## License
 
-Internal engineering tool -- for company use only.
+Internal engineering tool — for company use only.
