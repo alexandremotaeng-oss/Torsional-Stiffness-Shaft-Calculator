@@ -13,10 +13,9 @@ A desktop engineering application for calculating the **torsional stiffness**, *
 5. [Offset and Excluded Segments](#offset-and-excluded-segments)
 6. [Compatibility Search](#compatibility-search)
 7. [Report and Charts](#report-and-charts)
-<!-- 8. [Project Structure](#project-structure) -->
-1. [Requirements and Installation](#requirements-and-installation)
-2. [Running and Debugging](#running-and-debugging)
-3. [Multilingual Support](#multilingual-support)
+8. [Requirements and Installation](#requirements-and-installation)
+9. [Running and Debugging](#running-and-debugging)
+10. [Multilingual Support](#multilingual-support)
 
 ---
 
